@@ -1,5 +1,6 @@
+# Imports
 import ftplib as ft
-
+# State vars
 ftp_connection = None
 connection_name = None
 
@@ -22,7 +23,10 @@ def parse_input():
     if u_input[0] == "Quit":
         return True
     elif u_input[0] == "Connect":
-        connect(ftp_connection, u_input[1], u_input[2], u_input[3])
+        if len(u_input) == 4:
+                connect(ftp_connection, u_input[1], u_input[2], u_input[3])
+        else:
+            connect(ftp_connection, u_input[1])
     elif u_input[0] == "Close":
         return True
     return False
