@@ -13,7 +13,7 @@ connection_name = None
 def connect(host, port=20, username="", password="", account_info=""):
     global ftp_connection
     ftp_connection = ft.FTP()
-    ftp_connection.connect(host, int(port))
+    ftp_connection.connect(host, port)
     ftp_connection.login(username, password, account_info)
     print("Connected")
 
@@ -30,7 +30,7 @@ def cd(path):
 
 # Get a file from the connected server
 def get(file):
-    ftp_connection.retrlines("RETR "+ file, open(file, 'w').write)
+    ftp_connection.retrlines("RETR " + file, open(file, 'w').write)
 
 
 # Prints the Basic Menu
@@ -58,13 +58,13 @@ def parse_input():
         if len(u_input) == 4:
             connect(u_input[1], username=u_input[2], password=u_input[3])
         elif len(u_input) == 5:
-            connect(u_input[1], u_input[2], u_input[3], u_input[4])
+            connect(u_input[1], int(u_input[2]), u_input[3], u_input[4])
         else:
             connect(u_input[1])
 
     elif u_input[0] == "put":
         if len(u_input) < 2:
-            print ("You need to supply a filename to upload")
+            print("You need to supply a filename to upload")
         else:
             put(u_input[1])
 
@@ -76,7 +76,7 @@ def parse_input():
 
     elif u_input[0] == "cd":
         if len(u_input) < 2:
-            print ("You need to supply a directory to go to")
+            print("You need to supply a directory to go to")
         else:
             cd(u_input[1])
 
