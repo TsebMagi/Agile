@@ -8,13 +8,14 @@ ftp_connection = None
 connection_name = None
 
 
-# Connects to the
+# Connects to the host and updates the global ftp connection.
 def connect(host, username="", password="", account_info=""):
     global ftp_connection
     ftp_connection = ft.FTP(host, username, password, account_info)
     print("Connected")
 
 
+# Prints the Basic Menu
 def help_menu():
     print("Options : \n"
           "Connect <host username password> \n"
@@ -23,6 +24,7 @@ def help_menu():
           "Quit \n" )
 
 
+# Parses user input
 def parse_input():
     u_input = input("input: ")
     u_input = u_input.split()
