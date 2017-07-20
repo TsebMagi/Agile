@@ -23,7 +23,7 @@ def put(file):
     ftp_connection.storlines("STOR " + os.path.basename(file), open(file, 'r+b'))
 
 
-# Change directory
+# Change directory (currently this is a relative path)
 def cd(path):
     ftp_connection.cwd(path)
 
@@ -36,13 +36,14 @@ def get(file):
 # Prints the Basic Menu
 def help_menu():
     print("Options : \n"
-          "Connect <host [port] username password> \n"
-          "Put <filename>\n"
-          "Get <filename>\n"
+          "connect <host [port] username password> \n"
+          "put <filename>\n"
+          "get <filename>\n"
           "cd <path>\n"
-          "List \n"
-          "Close \n"
-          "Quit \n" )
+          "list \n"
+          "close \n"
+          "quit \n"
+          "help \n")
 
 
 # Parses user input
@@ -91,11 +92,17 @@ def parse_input():
             ftp_connection.dir()
         else:
             print("No Connection")
+
+    elif u_input[0] == "help":
+        help_menu()
+
+    else:
+        print("Invalid command.  Type help to display a help menu")
     return False
 
 
 if __name__ == "__main__":
     done = False
+    print("Welcome to our basic FTP client.\nType help to display a help menu\n")
     while not done:
-        help_menu()
         done = parse_input()
