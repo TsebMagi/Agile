@@ -25,14 +25,15 @@ def help_menu():
 def parse_input():
     u_input = input("input: ")
     u_input = u_input.split()
-    if u_input[0] == "Quit":
+    u_input[0].lower()
+    if u_input[0] == "quit":
         return True
-    elif u_input[0] == "Connect":
+    elif u_input[0] == "connect":
         if len(u_input) == 4:
                 connect(u_input[1], u_input[2], u_input[3])
         else:
             connect(u_input[1])
-    elif u_input[0] == "Close":
+    elif u_input[0] == "close":
         if ftp_connection is not None:
             ftp_connection.close()
         else:
