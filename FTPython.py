@@ -53,12 +53,8 @@ def help_menu():
 
 # Parses user input
 def parse_input():
-    try:
-        u_input = input("input: ")
-    except (SyntaxError, KeyboardInterrupt) as err:
-        print("Invalid syntax: ", err)
-    else:
-        u_input = u_input.split()
+    u_input = input("input: ")
+    u_input = u_input.split()
         u_input[0] = u_input[0].lower()
 
         if u_input[0] == "quit":
@@ -66,7 +62,7 @@ def parse_input():
 
     elif u_input[0] == "connect":
         if len(u_input) == 4:
-            connect(u_input[1], username=u_input[2], password=u_input[3])
+            connect(u_input[1], 20, u_input[2], u_input[3])
         elif len(u_input) == 5:
             connect(u_input[1], int(u_input[2]), u_input[3], u_input[4])
         else:
