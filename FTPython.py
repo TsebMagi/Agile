@@ -11,8 +11,12 @@ connection_name = None
 # Connects to the host and updates the global ftp connection.
 def connect(host, username="", password="", account_info=""):
     global ftp_connection
-    ftp_connection = ft.FTP(host, username, password, account_info)
-    print("Connected")
+    try:
+        ftp_connection = ft.FTP(host, username, password, account_info)
+    except ft.all_errors as err:
+        print("Could not connect to host: ", err, "\n")
+    else:
+        print("Connected\n")
 
 
 # Prints the Basic Menu
@@ -26,31 +30,35 @@ def help_menu():
 
 # Parses user input
 def parse_input():
-    u_input = input("input: ")
-    u_input = u_input.split()
-    u_input[0].lower()
+    try:
+        u_input = input("input: ")
+    except (SyntaxError, KeyboardInterrupt) as err:
+        print("Invalid syntax: ", err)
+    else:
+        u_input = u_input.split()
+        u_input[0] = u_input[0].lower()
 
-    if u_input[0] == "quit":
-        return True
+        if u_input[0] == "quit":
+            return True
 
-    elif u_input[0] == "connect":
-        if len(u_input) == 4:
+        elif u_input[0] == "connect":
+            if len(u_input) == 4:
                 connect(u_input[1], u_input[2], u_input[3])
-        else:
-            connect(u_input[1])
+            else:
+                connect(u_input[1])
 
-    elif u_input[0] == "close":
-        if ftp_connection is not None:
-            ftp_connection.close()
-        else:
-            print("No Connection to Close")
+        elif u_input[0] == "close":
+            if ftp_connection is not None:
+                ftp_connection.close()
+            else:
+                print("No Connection to Close\n")
 
-    elif u_input[0] == "list":
-        if ftp_connection is not None:
-            ftp_connection.nlst('LIST')
-        else:
-            print("No Connection")
-    return False
+        elif u_input[0] == "list":
+            if ftp_connection is not None:
+                ftp_connection.nlst('LIST')
+            else:
+                print("No Connection\n")
+        return False
 
 
 if __name__ == "__main__":
