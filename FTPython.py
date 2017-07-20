@@ -16,6 +16,12 @@ def connect(host, port=20, username="", password="", account_info=""):
     ftp_connection.connect(host, port)
     ftp_connection.login(username, password, account_info)
     print("Connected")
+    try:
+        ftp_connection = ft.FTP(host, username, password, account_info)
+    except ft.all_errors as err:
+        print("Could not connect to host: ", err, "\n")
+    else:
+        print("Connected\n")
 
 
 # Places a file on the connected server
@@ -50,14 +56,14 @@ def help_menu():
 def parse_input():
     u_input = input("input: ")
     u_input = u_input.split()
-    u_input[0].lower()
+        u_input[0] = u_input[0].lower()
 
-    if u_input[0] == "quit":
-        return True
+        if u_input[0] == "quit":
+            return True
 
     elif u_input[0] == "connect":
         if len(u_input) == 4:
-            connect(u_input[1], username=u_input[2], password=u_input[3])
+            connect(u_input[1], 20, u_input[2], u_input[3])
         elif len(u_input) == 5:
             connect(u_input[1], int(u_input[2]), u_input[3], u_input[4])
         else:
