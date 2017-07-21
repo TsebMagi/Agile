@@ -56,10 +56,10 @@ def help_menu():
 def parse_input():
     u_input = input("input: ")
     u_input = u_input.split()
-        u_input[0] = u_input[0].lower()
+    u_input[0] = u_input[0].lower()
 
-        if u_input[0] == "quit":
-            return True
+    if u_input[0] == "quit":
+        return True
 
     elif u_input[0] == "connect":
         if len(u_input) == 4:
