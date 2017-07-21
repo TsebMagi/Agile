@@ -65,6 +65,9 @@ def g_write_and_print_progress(store_file, filename, file_size):
 # Generates and returns the function to calculate and print the progress of a file transfer.
 # The print formatting was found on https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
 # This generates the callback function for the put command.
+#
+# Note: This bugs in Pycharm as the lines don't always overwrite each other properly.  This
+# is an issue with Pycharm.  If you run this in a normal terminal, it works fine.
 def g_print_progress(filename, file_size):
     def print_progress(bytes_transferred):
         global total_bytes_transferred
