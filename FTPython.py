@@ -12,16 +12,12 @@ connection_name = None
 # Connects to the host and updates the global ftp connection.
 def connect(host, port=20, username="", password="", account_info=""):
     global ftp_connection
-    ftp_connection = ft.FTP()
-    ftp_connection.connect(host, port)
-    ftp_connection.login(username, password, account_info)
-    print("Connected")
     try:
-        ftp_connection = ft.FTP(host, username, password, account_info)
+        ftp_connection = ft.FTP()
+        print(ftp_connection.connect(host, port))
+        print(ftp_connection.login(username, password, account_info))
     except ft.all_errors as err:
-        print("Could not connect to host: ", err, "\n")
-    else:
-        print("Connected\n")
+        print("Could not connect: ", err)
 
 
 # Places a file on the connected server
