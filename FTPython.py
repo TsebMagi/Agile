@@ -34,6 +34,15 @@ def cd(path):
 def get(file):
     ftp_connection.retrlines("RETR " + file, open(file, 'w').write)
 
+def rename(option, old, new):
+    try:
+        if option == "local":
+            os.rename(old, new)
+        elif option == "remote":
+            ftp_connection.rename(old, new)
+    except(FileNotFoundError):
+        print("Rename: Invalid input")
+
 
 # Prints the Basic Menu
 def help_menu():
@@ -42,6 +51,7 @@ def help_menu():
           "put <filename>\n"
           "get <filename>\n"
           "cd <path>\n"
+          "rename <local/remote fromFilename toFilename>\n"
           "list \n"
           "close \n"
           "quit \n"
@@ -83,6 +93,9 @@ def parse_input():
         else:
             cd(u_input[1])
 
+    elif u_input[0] == "rename":
+        rename(u_input[1], u_input[2], u_input[3])
+
     elif u_input[0] == "close":
         if ftp_connection is not None:
             ftp_connection.close()
@@ -97,6 +110,7 @@ def parse_input():
 
     elif u_input[0] == "help":
         help_menu()
+
 
     else:
         print("Invalid command.  Type help to display a help menu")
