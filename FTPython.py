@@ -18,6 +18,7 @@ def connect(host, port=20, username="", password="", account_info=""):
         ftp_connection = ft.FTP()
         print(ftp_connection.connect(host, port))
         print(ftp_connection.login(username, password, account_info))
+        print(ftp_connection.pwd())
     except ft.all_errors as err:
         print("Could not connect: ", err)
 
@@ -35,6 +36,22 @@ def put(files):
 # Change directory (currently this is a relative path)
 def cd(path):
     ftp_connection.cwd(path)
+
+# List files in current directory
+# Will not list . and .. - restriction of os.listdir command
+def list(option):
+    if option == "local":
+        #print(os.listdir())
+        for i in os.listdir():
+            print(i)
+        print('\n')
+    elif option == "remote":
+        if ftp_connection is not None:
+            ftp_connection.dir()
+        else:
+            print("No Connection")
+    else:
+        print("Entered an Invalid option")
 
 
 # Gets file(s) from the connected server
@@ -78,6 +95,15 @@ def g_print_progress(filename, file_size):
 
     return print_progress
 
+def rename(option, old, new):
+    try:
+        if option == "local":
+            os.rename(old, new)
+        elif option == "remote":
+            ftp_connection.rename(old, new)
+    except(FileNotFoundError):
+        print("Rename: Invalid input")
+
 
 # Prints the Basic Menu
 def help_menu():
@@ -86,7 +112,9 @@ def help_menu():
           "put <filename filename ...>\n"
           "get <filename filename ...>\n"
           "cd <path>\n"
-          "list \n"
+          "rename <local/remote fromFilename toFilename>\n"
+          "list remote \n"
+          "list local \n"
           "close \n"
           "quit \n"
           "help \n")
@@ -129,6 +157,9 @@ def parse_input():
         else:
             cd(u_input[1])
 
+    elif u_input[0] == "rename":
+        rename(u_input[1], u_input[2], u_input[3])
+
     elif u_input[0] == "close":
         if ftp_connection is not None:
             ftp_connection.close()
@@ -136,10 +167,7 @@ def parse_input():
             print("No Connection to Close")
 
     elif u_input[0] == "list":
-        if ftp_connection is not None:
-            ftp_connection.dir()
-        else:
-            print("No Connection")
+        list(u_input[1])
 
     elif u_input[0] == "help":
         help_menu()
