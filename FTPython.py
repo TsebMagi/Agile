@@ -29,6 +29,22 @@ def put(file):
 def cd(path):
     ftp_connection.cwd(path)
 
+# List files in current directory
+# Will not list . and .. - restriction of os.listdir command
+def list(option):
+    if option == "local":
+        #print(os.listdir())
+        for i in os.listdir():
+            print(i)
+        print('\n')
+    elif option == "remote":
+        if ftp_connection is not None:
+            ftp_connection.dir()
+        else:
+            print("No Connection")
+    else:
+        print("Entered an Invalid option")
+
 
 # Get a file from the connected server
 def get(file):
@@ -42,7 +58,8 @@ def help_menu():
           "put <filename>\n"
           "get <filename>\n"
           "cd <path>\n"
-          "list \n"
+          "list remote \n"
+          "list local \n"
           "close \n"
           "quit \n"
           "help \n")
@@ -90,10 +107,7 @@ def parse_input():
             print("No Connection to Close")
 
     elif u_input[0] == "list":
-        if ftp_connection is not None:
-            ftp_connection.dir()
-        else:
-            print("No Connection")
+        list(u_input[1])
 
     elif u_input[0] == "help":
         help_menu()
