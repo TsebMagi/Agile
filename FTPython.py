@@ -16,6 +16,7 @@ def connect(host, port=20, username="", password="", account_info=""):
         ftp_connection = ft.FTP()
         print(ftp_connection.connect(host, port))
         print(ftp_connection.login(username, password, account_info))
+        print(ftp_connection.pwd())
     except ft.all_errors as err:
         print("Could not connect: ", err)
 
@@ -50,6 +51,15 @@ def list(option):
 def get(file):
     ftp_connection.retrlines("RETR " + file, open(file, 'w').write)
 
+def rename(option, old, new):
+    try:
+        if option == "local":
+            os.rename(old, new)
+        elif option == "remote":
+            ftp_connection.rename(old, new)
+    except(FileNotFoundError):
+        print("Rename: Invalid input")
+
 
 # Prints the Basic Menu
 def help_menu():
@@ -58,6 +68,7 @@ def help_menu():
           "put <filename>\n"
           "get <filename>\n"
           "cd <path>\n"
+          "rename <local/remote fromFilename toFilename>\n"
           "list remote \n"
           "list local \n"
           "close \n"
@@ -99,6 +110,9 @@ def parse_input():
             print("You need to supply a directory to go to")
         else:
             cd(u_input[1])
+
+    elif u_input[0] == "rename":
+        rename(u_input[1], u_input[2], u_input[3])
 
     elif u_input[0] == "close":
         if ftp_connection is not None:
