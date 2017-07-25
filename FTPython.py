@@ -20,7 +20,7 @@ def connect(host, port=20, username="", password="", account_info=""):
         print(ftp_connection.login(username, password, account_info))
         print(ftp_connection.pwd())
     except ft.all_errors as err:
-        print("Could not connect: ", err)
+        print("Connection failed: ", err)
 
 
 # Places file(s) on the connected server
@@ -101,7 +101,7 @@ def rename(option, old, new):
             os.rename(old, new)
         elif option == "remote":
             ftp_connection.rename(old, new)
-    except(FileNotFoundError):
+    except FileNotFoundError:
         print("Rename: Invalid input")
 
 
@@ -126,54 +126,60 @@ def parse_input():
     u_input = u_input.split()
     u_input[0] = u_input[0].lower()
 
-    if u_input[0] == "quit":
-        return True
+    try:
+        if u_input[0] == "quit":
+            return True
 
-    elif u_input[0] == "connect":
-        if len(u_input) == 4:
-            connect(u_input[1], 20, u_input[2], u_input[3])
-        elif len(u_input) == 5:
-            connect(u_input[1], int(u_input[2]), u_input[3], u_input[4])
+        elif u_input[0] == "connect":
+            if len(u_input) == 4:
+                connect(u_input[1], 20, u_input[2], u_input[3])
+            elif len(u_input) == 5:
+                connect(u_input[1], int(u_input[2]), u_input[3], u_input[4])
+            else:
+                connect(u_input[1])
+
+        elif u_input[0] == "put":
+            if len(u_input) < 2:
+                print("You need to supply a filename to upload")
+            else:
+                del u_input[0]
+                put(u_input)
+
+        elif u_input[0] == "get":
+            if len(u_input) < 2:
+                print("You need to supply a file to download")
+            else:
+                del u_input[0]
+                get(u_input)
+
+        elif u_input[0] == "cd":
+            if len(u_input) < 2:
+                print("You need to supply a directory to go to")
+            else:
+                cd(u_input[1])
+
+        elif u_input[0] == "rename":
+            rename(u_input[1], u_input[2], u_input[3])
+
+        elif u_input[0] == "close":
+            if ftp_connection is not None:
+                ftp_connection.close()
+            else:
+                print("No Connection to Close")
+
+        elif u_input[0] == "list":
+            if len(u_input) >= 2:
+                list(u_input[1])
+            else:
+                print("List requires an argument of 'local' or 'remote'.")
+
+        elif u_input[0] == "help":
+            help_menu()
+
         else:
-            connect(u_input[1])
-
-    elif u_input[0] == "put":
-        if len(u_input) < 2:
-            print("You need to supply a filename to upload")
-        else:
-            del u_input[0]
-            put(u_input)
-
-    elif u_input[0] == "get":
-        if len(u_input) < 2:
-            print("You need to supply a file to download")
-        else:
-            del u_input[0]
-            get(u_input)
-
-    elif u_input[0] == "cd":
-        if len(u_input) < 2:
-            print("You need to supply a directory to go to")
-        else:
-            cd(u_input[1])
-
-    elif u_input[0] == "rename":
-        rename(u_input[1], u_input[2], u_input[3])
-
-    elif u_input[0] == "close":
-        if ftp_connection is not None:
-            ftp_connection.close()
-        else:
-            print("No Connection to Close")
-
-    elif u_input[0] == "list":
-        list(u_input[1])
-
-    elif u_input[0] == "help":
-        help_menu()
-
-    else:
-        print("Invalid command.  Type help to display a help menu")
+            print("Invalid command.  Type help to display a help menu")
+    except ft.all_errors as err:
+        print("Error: ", err)
     return False
 
 
