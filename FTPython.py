@@ -4,11 +4,23 @@
 # Imports
 import ftplib as ft
 import os
+import sqlite3
+import base64
+import Crypto.Cipher
 
 # State vars
 ftp_connection = None
 connection_name = None
 total_bytes_transferred = 0
+
+# Constants
+DB_Name = "connections.db"
+create_table = """ CREATE TABLE IF NOT EXISTS connections (
+                                        id integer PRIMARY KEY,
+                                        connection_address text NOT NULL,
+                                        user_name text,
+                                        encrypted_password text
+                                    ); """
 
 
 # Connects to the host and updates the global ftp connection.
@@ -37,11 +49,12 @@ def put(files):
 def cd(path):
     ftp_connection.cwd(path)
 
+
 # List files in current directory
 # Will not list . and .. - restriction of os.listdir command
 def list(option):
     if option == "local":
-        #print(os.listdir())
+        # print(os.listdir())
         for i in os.listdir():
             print(i)
         print('\n')
@@ -95,6 +108,7 @@ def g_print_progress(filename, file_size):
 
     return print_progress
 
+
 def rename(option, old, new):
     try:
         if option == "local":
@@ -118,6 +132,15 @@ def help_menu():
           "close \n"
           "quit \n"
           "help \n")
+
+
+# Creates a Database if one doesn't exist yet
+def db_create():
+    db_connection = sqlite3.connect(DB_Name)
+    if db_connection is not None:
+        db_connection.execute(create_table)
+    else:
+        print("Unable to connect to Database!")
 
 
 # Parses user input
@@ -185,6 +208,7 @@ def parse_input():
 
 if __name__ == "__main__":
     done = False
+    db_create()
     print("Welcome to our basic FTP client.\nType help to display a help menu\n")
     while not done:
         done = parse_input()
