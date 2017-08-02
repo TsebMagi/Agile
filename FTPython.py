@@ -6,7 +6,7 @@ import ftplib as ft
 import os
 import sqlite3
 import base64
-import Crypto.Cipher
+import Crypto.Cipher.XOR as xor
 
 # State vars
 ftp_connection = None
@@ -15,12 +15,11 @@ total_bytes_transferred = 0
 
 # Constants
 DB_Name = "connections.db"
-create_table = """ CREATE TABLE IF NOT EXISTS connections (
-                                        id integer PRIMARY KEY,
-                                        connection_address text NOT NULL,
-                                        user_name text,
-                                        encrypted_password text
-                                    ); """
+
+create_table = """CREATE TABLE IF NOT EXISTS connections (connection_address text NOT NULL,
+ port integer, user_name text, encrypted_password text); """
+insert_into_table = """insert into connections values (?, ?, ?, ?)"""
+get_connections = """SELECT * from connections"""
 
 
 # Connects to the host and updates the global ftp connection.
@@ -129,18 +128,44 @@ def help_menu():
           "rename <local/remote fromFilename toFilename>\n"
           "list remote \n"
           "list local \n"
+          "save connection\n"
+          "show connections\n"
           "close \n"
           "quit \n"
           "help \n")
 
 
-# Creates a Database if one doesn't exist yet
+# Creates the Database if one doesn't exist yet and makes a basic table
 def db_create():
     db_connection = sqlite3.connect(DB_Name)
     if db_connection is not None:
         db_connection.execute(create_table)
     else:
         print("Unable to connect to Database!")
+
+
+# Prompts the user for the info to save the ftp connection in the local database
+# will encrypt the password before storing it.
+def save_connection():
+    host = input("Hostname: ")
+    port = input("Port (optional): ")
+    username = input("Username(optional): ")
+    password = input("Password(optional): ")
+    key = input("Database Key (required if password is supplied): ")
+    cypher = xor.new(key)
+    encode = cypher.encrypt(password)
+    con = sqlite3.connect(DB_Name)
+    c = con.cursor()
+    c.execute(insert_into_table, (host, port, username, encode))
+    con.commit()
+    con.close()
+
+
+def show_connections():
+    con = sqlite3.connect(DB_Name)
+    c = con.cursor()
+    c.execute(get_connections)
+    print(c.fetchall())
 
 
 # Parses user input
@@ -198,6 +223,12 @@ def parse_input():
 
         elif u_input[0] == "help":
             help_menu()
+
+        elif u_input[0] == "save":
+            save_connection()
+
+        elif u_input[0] == "show":
+            show_connections()
 
         else:
             print("Invalid command.  Type help to display a help menu")
