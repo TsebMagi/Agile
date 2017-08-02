@@ -16,9 +16,9 @@ total_bytes_transferred = 0
 # Constants
 DB_Name = "connections.db"
 
-create_table = """CREATE TABLE IF NOT EXISTS connections (connection_address text NOT NULL,
+create_table = """CREATE TABLE IF NOT EXISTS connections (connection_name text NOT NULL, connection_address text NOT NULL,
  port integer, user_name text, encrypted_password text); """
-insert_into_table = """insert into connections values (?, ?, ?, ?)"""
+insert_into_table = """insert into connections values (?, ?, ?, ?, ?)"""
 get_connections = """SELECT * from connections"""
 
 
@@ -147,16 +147,23 @@ def db_create():
 # Prompts the user for the info to save the ftp connection in the local database
 # will encrypt the password before storing it.
 def save_connection():
+    handle = input("Nickname: ")
     host = input("Hostname: ")
     port = input("Port (optional): ")
     username = input("Username(optional): ")
     password = input("Password(optional): ")
     key = input("Database Key (required if password is supplied): ")
-    cypher = xor.new(key)
-    encode = cypher.encrypt(password)
+    encode = None
+    if len(password) > 0:
+        if len(key) > 0:
+            cypher = xor.new(key)
+            encode = cypher.encrypt(password)
+        else:
+            print("Error: Missing Key for password encryption Try again")
+            return
     con = sqlite3.connect(DB_Name)
     c = con.cursor()
-    c.execute(insert_into_table, (host, port, username, encode))
+    c.execute(insert_into_table, (handle, host, port, username, encode))
     con.commit()
     con.close()
 
@@ -165,7 +172,9 @@ def show_connections():
     con = sqlite3.connect(DB_Name)
     c = con.cursor()
     c.execute(get_connections)
-    print(c.fetchall())
+    output = c.fetchall()
+    for item in output:
+        print(item)
 
 
 # Parses user input
