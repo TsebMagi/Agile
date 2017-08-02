@@ -1,4 +1,4 @@
-# This File handles the FTP Project for the summer Agile class at PSU 2017
+# This File handles the FTP Project for the summer Agile class at PSU :w17
 
 
 # Imports
@@ -22,8 +22,21 @@ insert_into_table = """insert into connections values (?, ?, ?, ?, ?)"""
 get_connections = """SELECT * from connections"""
 
 
+# Deletes a filename specified by the user
+def delete(filename):
+    try:
+        ftp_connection.delete(filename)
+        print("Successfully able to delete ", filename)
+    except ft.all_errors as err:
+        print("Unable to delete file " + filename + ": ", err)
+
+
 # Connects to the host and updates the global ftp connection.
 def connect(host, port=20, username="", password="", account_info=""):
+    print("Trying to connect with user: ", username)
+    print("Trying to connect with host: ", host)
+    print("Trying to connect with port: ", port)
+    print("Trying to connect with password: ", password)
     global ftp_connection
     try:
         ftp_connection = ft.FTP()
@@ -126,6 +139,7 @@ def help_menu():
           "get <filename filename ...>\n"
           "cd <path>\n"
           "rename <local/remote fromFilename toFilename>\n"
+          "delete <filename> \n"
           "list remote \n"
           "list local \n"
           "save connection\n"
@@ -238,6 +252,9 @@ def parse_input():
 
         elif u_input[0] == "show":
             show_connections()
+
+        elif u_input[0] == "delete":
+            delete(u_input[1])
 
         else:
             print("Invalid command.  Type help to display a help menu")
