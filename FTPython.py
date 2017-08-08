@@ -268,8 +268,11 @@ def parse_input():
             delete(u_input[1])
 
         elif u_input[0] == "change":
-            change_permissions(u_input[1])
-
+            if u_input[1] == None or u_input[2] == None or u_input[3] == None:
+                print("Error. Must provide permissions and file name.")
+            else:
+                change_permissions(u_input[1] + " " +
+                               u_input[2] + " " + u_input[3])
         else:
             print("Invalid command.  Type help to display a help menu")
     except ft.all_errors as err:
