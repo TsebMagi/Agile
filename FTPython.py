@@ -156,7 +156,8 @@ def help_menu():
           "show connections\n"
           "close \n"
           "quit \n"
-          "help \n")
+          "help \n"
+          "change <chmod xxx file_name \n")
 
 
 # Creates the Database if one doesn't exist yet and makes a basic table
@@ -265,6 +266,9 @@ def parse_input():
 
         elif u_input[0] == "delete":
             delete(u_input[1])
+
+        elif u_input[0] == "change":
+            change_permissions(u_input[1])
 
         else:
             print("Invalid command.  Type help to display a help menu")
