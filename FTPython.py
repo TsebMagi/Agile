@@ -22,6 +22,16 @@ insert_into_table = """insert into connections values (?, ?, ?, ?, ?)"""
 get_connections = """SELECT * from connections"""
 
 
+#Changes a file's permissions, where change is the chmod xxxx fileName
+def change_permissions(change):
+    successOrFail = ftp_connection.sendCommand(change)
+    if successOrFail == False:
+        print("Failed to change permissions.")
+    else:
+        print("Successfuly changed permissions.")
+
+
+
 # Deletes a filename specified by the user
 def delete(filename):
     try:
