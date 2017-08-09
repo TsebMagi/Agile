@@ -156,7 +156,7 @@ def help_menu():
           "close \n"
           "quit \n"
           "help \n"
-          "change <chmod xxx file_name \n")
+          "change <chmod xxx file_name> \n")
 
 
 # Creates the Database if one doesn't exist yet and makes a basic table
