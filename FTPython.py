@@ -1,18 +1,42 @@
-# This File handles the FTP Project for the summer Agile class at PSU 2017
+# This File handles the FTP Project for the summer Agile class at PSU :w17
 
 
 # Imports
 import ftplib as ft
 import os
+import sqlite3
+import base64
+import Crypto.Cipher.XOR as xor
 
 # State vars
 ftp_connection = None
 connection_name = None
 total_bytes_transferred = 0
 
+# Constants
+DB_Name = "connections.db"
+
+create_table = """CREATE TABLE IF NOT EXISTS connections (connection_name text NOT NULL, connection_address text NOT NULL,
+ port integer, user_name text, encrypted_password text); """
+insert_into_table = """insert into connections values (?, ?, ?, ?, ?)"""
+get_connections = """SELECT * from connections"""
+
+
+# Deletes a filename specified by the user
+def delete(filename):
+    try:
+        ftp_connection.delete(filename)
+        print("Successfully able to delete ", filename)
+    except ft.all_errors as err:
+        print("Unable to delete file " + filename + ": ", err)
+
 
 # Connects to the host and updates the global ftp connection.
 def connect(host, port=20, username="", password="", account_info=""):
+    print("Trying to connect with user: ", username)
+    print("Trying to connect with host: ", host)
+    print("Trying to connect with port: ", port)
+    print("Trying to connect with password: ", password)
     global ftp_connection
     try:
         ftp_connection = ft.FTP()
@@ -37,11 +61,12 @@ def put(files):
 def cd(path):
     ftp_connection.cwd(path)
 
+
 # List files in current directory
 # Will not list . and .. - restriction of os.listdir command
 def list(option):
     if option == "local":
-        #print(os.listdir())
+        # print(os.listdir())
         for i in os.listdir():
             print(i)
         print('\n')
@@ -95,6 +120,7 @@ def g_print_progress(filename, file_size):
 
     return print_progress
 
+
 def rename(option, old, new):
     try:
         if option == "local":
@@ -113,11 +139,56 @@ def help_menu():
           "get <filename filename ...>\n"
           "cd <path>\n"
           "rename <local/remote fromFilename toFilename>\n"
+          "delete <filename> \n"
           "list remote \n"
           "list local \n"
+          "save connection\n"
+          "show connections\n"
           "close \n"
           "quit \n"
           "help \n")
+
+
+# Creates the Database if one doesn't exist yet and makes a basic table
+def db_create():
+    db_connection = sqlite3.connect(DB_Name)
+    if db_connection is not None:
+        db_connection.execute(create_table)
+    else:
+        print("Unable to connect to Database!")
+
+
+# Prompts the user for the info to save the ftp connection in the local database
+# will encrypt the password before storing it.
+def save_connection():
+    handle = input("Nickname: ")
+    host = input("Hostname: ")
+    port = input("Port (optional): ")
+    username = input("Username(optional): ")
+    password = input("Password(optional): ")
+    key = input("Database Key (required if password is supplied): ")
+    encode = None
+    if len(password) > 0:
+        if len(key) > 0:
+            cypher = xor.new(key)
+            encode = cypher.encrypt(password)
+        else:
+            print("Error: Missing Key for password encryption Try again")
+            return
+    con = sqlite3.connect(DB_Name)
+    c = con.cursor()
+    c.execute(insert_into_table, (handle, host, port, username, encode))
+    con.commit()
+    con.close()
+
+
+def show_connections():
+    con = sqlite3.connect(DB_Name)
+    c = con.cursor()
+    c.execute(get_connections)
+    output = c.fetchall()
+    for item in output:
+        print(item)
 
 
 # Parses user input
@@ -176,6 +247,15 @@ def parse_input():
         elif u_input[0] == "help":
             help_menu()
 
+        elif u_input[0] == "save":
+            save_connection()
+
+        elif u_input[0] == "show":
+            show_connections()
+
+        elif u_input[0] == "delete":
+            delete(u_input[1])
+
         else:
             print("Invalid command.  Type help to display a help menu")
     except ft.all_errors as err:
@@ -185,6 +265,7 @@ def parse_input():
 
 if __name__ == "__main__":
     done = False
+    db_create()
     print("Welcome to our basic FTP client.\nType help to display a help menu\n")
     while not done:
         done = parse_input()
