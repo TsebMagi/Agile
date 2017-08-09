@@ -12,6 +12,7 @@ from Crypto.Cipher.XOR import new
 ftp_connection = None
 connection_name = None
 total_bytes_transferred = 0
+encryption_key = None
 
 # Constants
 DB_Name = "connections.db"
@@ -273,8 +274,7 @@ def parse_input():
             if u_input[1] is None or u_input[2] is None or u_input[3] is None:
                 print("Error. Must provide permissions and file name.")
             else:
-                change_permissions(u_input[1] + " " +
-                               u_input[2] + " " + u_input[3])
+                change_permissions(u_input[1] + " " + u_input[2] + " " + u_input[3])
         else:
             print("Invalid command.  Type help to display a help menu")
     except ft.all_errors as err:
