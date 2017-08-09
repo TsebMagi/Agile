@@ -6,7 +6,7 @@ import ftplib as ft
 import os
 import sqlite3
 import base64
-import Crypto.Cipher.XOR as xor
+from Crypto.Cipher.XOR import new
 
 # State vars
 ftp_connection = None
@@ -16,20 +16,19 @@ total_bytes_transferred = 0
 # Constants
 DB_Name = "connections.db"
 
-create_table = """CREATE TABLE IF NOT EXISTS connections (connection_name text NOT NULL, connection_address text NOT NULL,
+create_table = """CREATE TABLE IF NOT EXISTS connections (connection_name text PRIMARY KEY, connection_address text NOT NULL,
  port integer, user_name text, encrypted_password text); """
 insert_into_table = """insert into connections values (?, ?, ?, ?, ?)"""
 get_connections = """SELECT * from connections"""
 
 
-#Changes a file's permissions, where change is the chmod xxxx fileName
+# Changes a file's permissions, where change is the chmod xxxx fileName
 def change_permissions(change):
-    successOrFail = ftp_connection.sendCommand(change)
-    if successOrFail == False:
+    success_or_fail = ftp_connection.sendCommand(change)
+    if success_or_fail is False:
         print("Failed to change permissions.")
     else:
-        print("Successfuly changed permissions.")
-
+        print("Successfully changed permissions.")
 
 
 # Deletes a filename specified by the user
@@ -74,7 +73,7 @@ def cd(path):
 
 # List files in current directory
 # Will not list . and .. - restriction of os.listdir command
-def list(option):
+def list_files(option):
     if option == "local":
         # print(os.listdir())
         for i in os.listdir():
@@ -181,16 +180,19 @@ def save_connection():
     encode = None
     if len(password) > 0:
         if len(key) > 0:
-            cypher = xor.new(key)
+            cypher = new(key)
             encode = cypher.encrypt(password)
         else:
             print("Error: Missing Key for password encryption Try again")
             return
-    con = sqlite3.connect(DB_Name)
-    c = con.cursor()
-    c.execute(insert_into_table, (handle, host, port, username, encode))
-    con.commit()
-    con.close()
+    try:
+        con = sqlite3.connect(DB_Name)
+        c = con.cursor()
+        c.execute(insert_into_table, (handle, host, port, username, encode))
+        con.commit()
+        con.close()
+    except sqlite3.Error as err:
+        print(err)
 
 
 def show_connections():
@@ -251,7 +253,7 @@ def parse_input():
 
         elif u_input[0] == "list":
             if len(u_input) >= 2:
-                list(u_input[1])
+                list_files(u_input[1])
             else:
                 print("List requires an argument of 'local' or 'remote'.")
 
@@ -268,7 +270,7 @@ def parse_input():
             delete(u_input[1])
 
         elif u_input[0] == "change":
-            if u_input[1] == None or u_input[2] == None or u_input[3] == None:
+            if u_input[1] is None or u_input[2] is None or u_input[3] is None:
                 print("Error. Must provide permissions and file name.")
             else:
                 change_permissions(u_input[1] + " " +
