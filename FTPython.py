@@ -22,6 +22,16 @@ insert_into_table = """insert into connections values (?, ?, ?, ?, ?)"""
 get_connections = """SELECT * from connections"""
 
 
+#Changes a file's permissions, where change is the chmod xxxx fileName
+def change_permissions(change):
+    successOrFail = ftp_connection.sendCommand(change)
+    if successOrFail == False:
+        print("Failed to change permissions.")
+    else:
+        print("Successfuly changed permissions.")
+
+
+
 # Deletes a filename specified by the user
 def delete(filename):
     try:
@@ -146,7 +156,8 @@ def help_menu():
           "show connections\n"
           "close \n"
           "quit \n"
-          "help \n")
+          "help \n"
+          "change <chmod xxx file_name \n")
 
 
 # Creates the Database if one doesn't exist yet and makes a basic table
@@ -256,6 +267,12 @@ def parse_input():
         elif u_input[0] == "delete":
             delete(u_input[1])
 
+        elif u_input[0] == "change":
+            if u_input[1] == None or u_input[2] == None or u_input[3] == None:
+                print("Error. Must provide permissions and file name.")
+            else:
+                change_permissions(u_input[1] + " " +
+                               u_input[2] + " " + u_input[3])
         else:
             print("Invalid command.  Type help to display a help menu")
     except ft.all_errors as err:
