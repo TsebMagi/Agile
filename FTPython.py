@@ -23,12 +23,22 @@ get_connections = """SELECT * from connections"""
 
 
 # Deletes a filename specified by the user
-def delete(filename):
-    try:
-        ftp_connection.delete(filename)
-        print("Successfully able to delete ", filename)
-    except ft.all_errors as err:
-        print("Unable to delete file " + filename + ": ", err)
+def delete(targetType, name):
+    if targetType == "file":
+        try:
+            ftp_connection.delete(filename)
+            print("Successfully able to delete ", name)
+        except ft.all_errors as err:
+            print("Unable to delete file " + name + ": ", err)
+
+    elif targetType == "folder":
+        try:
+            ftp_connection.rmd(name)
+            print("Successfully able to delete ", name)
+        except ft.all_errors as err:
+            print("Unable to delete folder " + name + ": ", err)
+    else:
+        print("invalid input, please designate either 'file' or 'folder'")
 
 
 # Connects to the host and updates the global ftp connection.
@@ -254,7 +264,10 @@ def parse_input():
             show_connections()
 
         elif u_input[0] == "delete":
-            delete(u_input[1])
+            if len(u_input) >= 2:
+                delete(u_input[1], u_input[2])
+            else:
+                print("delete requires arguments file/folder and a filename/foldername respectively")
 
         else:
             print("Invalid command.  Type help to display a help menu")
