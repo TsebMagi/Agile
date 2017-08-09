@@ -101,4 +101,3 @@ ENV/
 .gitignore
 .idea/
 FTPython
-*.xml
