@@ -22,11 +22,11 @@ insert_into_table = """insert into connections values (?, ?, ?, ?, ?)"""
 get_connections = """SELECT * from connections"""
 
 
-# Deletes a filename specified by the user
+# Deletes a file or folder specified by the user
 def delete(targetType, name):
     if targetType == "file":
         try:
-            ftp_connection.delete(filename)
+            ftp_connection.delete(name)
             print("Successfully able to delete ", name)
         except ft.all_errors as err:
             print("Unable to delete file " + name + ": ", err)
@@ -39,6 +39,14 @@ def delete(targetType, name):
             print("Unable to delete folder " + name + ": ", err)
     else:
         print("invalid input, please designate either 'file' or 'folder'")
+
+
+# Creates a folder specified by the user
+def create(name):
+    try:
+        ftp_connection.mkd(name)
+    except ft.all_errors as err:
+        print("unable to create directory " + name + ": ", err)
 
 
 # Connects to the host and updates the global ftp connection.
@@ -149,7 +157,8 @@ def help_menu():
           "get <filename filename ...>\n"
           "cd <path>\n"
           "rename <local/remote fromFilename toFilename>\n"
-          "delete <filename> \n"
+          "create <directoryName>"
+          "delete <file/folder targetName> \n"
           "list remote \n"
           "list local \n"
           "save connection\n"
@@ -269,6 +278,11 @@ def parse_input():
             else:
                 print("delete requires arguments file/folder and a filename/foldername respectively")
 
+        elif u_input[0] == "createdirectory":
+            if len(u_input) >= 2:
+                create(u_input[1])
+            else:
+                print("createdirectory requires a name of the directory to create")
         else:
             print("Invalid command.  Type help to display a help menu")
     except ft.all_errors as err:
