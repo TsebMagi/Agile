@@ -22,6 +22,29 @@ insert_into_table = """insert into connections values (?, ?, ?, ?, ?)"""
 get_connections = """SELECT * from connections"""
 
 
+# Deletes a file or folder specified by the user
+def delete(targetType, name):
+    if targetType == "file":
+        try:
+            ftp_connection.delete(name)
+            print("Successfully able to delete ", name)
+        except ft.all_errors as err:
+            print("Unable to delete file " + name + ": ", err)
+
+    elif targetType == "folder":
+        try:
+            ftp_connection.rmd(name)
+            print("Successfully able to delete ", name)
+        except ft.all_errors as err:
+            print("Unable to delete folder " + name + ": ", err)
+    else:
+        print("invalid input, please designate either 'file' or 'folder'")
+
+
+# Creates a folder specified by the user
+def create(name):
+
+  
 #Changes a file's permissions, where change is the chmod xxxx fileName
 def change_permissions(change):
     successOrFail = ftp_connection.sendCommand(change)
@@ -31,14 +54,12 @@ def change_permissions(change):
         print("Successfuly changed permissions.")
 
 
-
 # Deletes a filename specified by the user
 def delete(filename):
     try:
-        ftp_connection.delete(filename)
-        print("Successfully able to delete ", filename)
+        ftp_connection.mkd(name)
     except ft.all_errors as err:
-        print("Unable to delete file " + filename + ": ", err)
+        print("unable to create directory " + name + ": ", err)
 
 
 # Connects to the host and updates the global ftp connection.
@@ -149,7 +170,8 @@ def help_menu():
           "get <filename filename ...>\n"
           "cd <path>\n"
           "rename <local/remote fromFilename toFilename>\n"
-          "delete <filename> \n"
+          "create <directoryName>"
+          "delete <file/folder targetName> \n"
           "list remote \n"
           "list local \n"
           "save connection\n"
@@ -265,14 +287,24 @@ def parse_input():
             show_connections()
 
         elif u_input[0] == "delete":
-            delete(u_input[1])
+            if len(u_input) >= 2:
+                delete(u_input[1], u_input[2])
+            else:
+                print("delete requires arguments file/folder and a filename/foldername respectively")
 
+        elif u_input[0] == "createdirectory":
+            if len(u_input) >= 2:
+                create(u_input[1])
+            else:
+                print("createdirectory requires a name of the directory to create")
+                
         elif u_input[0] == "change":
             if u_input[1] == None or u_input[2] == None or u_input[3] == None:
                 print("Error. Must provide permissions and file name.")
             else:
                 change_permissions(u_input[1] + " " +
                                u_input[2] + " " + u_input[3])
+                
         else:
             print("Invalid command.  Type help to display a help menu")
     except ft.all_errors as err:
