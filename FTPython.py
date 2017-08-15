@@ -6,20 +6,22 @@ import ftplib as ft
 import os
 import sqlite3
 import base64
-import Crypto.Cipher.XOR as xor
+from Crypto.Cipher.XOR import new
 
 # State vars
 ftp_connection = None
 connection_name = None
 total_bytes_transferred = 0
+encryption_key = None
 
 # Constants
 DB_Name = "connections.db"
 
-create_table = """CREATE TABLE IF NOT EXISTS connections (connection_name text NOT NULL, connection_address text NOT NULL,
+create_table = """CREATE TABLE IF NOT EXISTS connections (connection_name text PRIMARY KEY, connection_address text NOT NULL,
  port integer, user_name text, encrypted_password text); """
-insert_into_table = """insert into connections values (?, ?, ?, ?, ?)"""
-get_connections = """SELECT * from connections"""
+insert_into_table = """insert into connections values (?, ?, ?, ?, ?);"""
+get_connections = """SELECT * from connections;"""
+load_connection = """SELECT * from connections c WHERE c.connection_name=?;"""
 
 
 # Deletes a file or folder specified by the user
@@ -47,12 +49,11 @@ def create(name):
   
 #Changes a file's permissions, where change is the chmod xxxx fileName
 def change_permissions(change):
-    successOrFail = ftp_connection.sendCommand(change)
-    if successOrFail == False:
+    success_or_fail = ftp_connection.sendCommand(change)
+    if success_or_fail is False:
         print("Failed to change permissions.")
     else:
-        print("Successfuly changed permissions.")
-
+        print("Successfully changed permissions.")
 
 # Deletes a filename specified by the user
 def delete(filename):
@@ -81,11 +82,14 @@ def connect(host, port=20, username="", password="", account_info=""):
 # Places file(s) on the connected server
 def put(files):
     global total_bytes_transferred
-    for file in files:
-        total_bytes_transferred = 0
-        ftp_connection.storbinary("STOR " + os.path.basename(file), open(file, 'r+b'),
+    try:
+        for file in files:
+            total_bytes_transferred = 0
+            ftp_connection.storbinary("STOR " + os.path.basename(file), open(file, 'r+b'),
                                   8192, g_print_progress(file, os.path.getsize(file)))
-        print("")
+            print("")
+    except AttributeError as err:
+        print("File not found")
 
 
 # Change directory (currently this is a relative path)
@@ -95,7 +99,7 @@ def cd(path):
 
 # List files in current directory
 # Will not list . and .. - restriction of os.listdir command
-def list(option):
+def list_files(option):
     if option == "local":
         # print(os.listdir())
         for i in os.listdir():
@@ -113,13 +117,16 @@ def list(option):
 # Gets file(s) from the connected server
 def get(files):
     global total_bytes_transferred
-    for file in files:
-        total_bytes_transferred = 0
-        store_file = open(os.path.basename(file), 'w+b')
-        ftp_connection.retrbinary("RETR " + file,
-                                  g_write_and_print_progress(store_file, file, ftp_connection.size(file)))
-        print("")
-        store_file.close()
+    try:
+        for file in files:
+            total_bytes_transferred = 0
+            store_file = open(os.path.basename(file), 'w+b')
+            ftp_connection.retrbinary("RETR " + file,
+                                      g_write_and_print_progress(store_file, file, ftp_connection.size(file)))
+            print("")
+            store_file.close()
+    except AttributeError as err:
+        print("File not found")
 
 
 # Generates and returns the function to write the transferred bytes to
@@ -179,7 +186,7 @@ def help_menu():
           "close \n"
           "quit \n"
           "help \n"
-          "change <chmod xxx file_name \n")
+          "change <chmod xxx file_name> \n")
 
 
 # Creates the Database if one doesn't exist yet and makes a basic table
@@ -203,16 +210,19 @@ def save_connection():
     encode = None
     if len(password) > 0:
         if len(key) > 0:
-            cypher = xor.new(key)
+            cypher = new(key)
             encode = cypher.encrypt(password)
         else:
             print("Error: Missing Key for password encryption Try again")
             return
-    con = sqlite3.connect(DB_Name)
-    c = con.cursor()
-    c.execute(insert_into_table, (handle, host, port, username, encode))
-    con.commit()
-    con.close()
+    try:
+        con = sqlite3.connect(DB_Name)
+        c = con.cursor()
+        c.execute(insert_into_table, (handle, host, port, username, encode))
+        con.commit()
+        con.close()
+    except sqlite3.Error as err:
+        print(err)
 
 
 def show_connections():
@@ -222,6 +232,20 @@ def show_connections():
     output = c.fetchall()
     for item in output:
         print(item)
+
+
+def load_con():
+    nickname = input("Enter the nickname of the connection you want to load ")
+    con = sqlite3.connect(DB_Name)
+    c = con.cursor()
+    c.execute(load_connection, (nickname,))
+    to_load = c.fetchone()
+    key = input("Enter the Key that was used to encrypt the password: ")
+    cypher = new(key)
+    password = cypher.decrypt(to_load[-1]).decode('ascii')
+    print(to_load)
+    print(password)
+    connect(to_load[1], to_load[2], to_load[3], password)
 
 
 # Parses user input
@@ -235,12 +259,17 @@ def parse_input():
             return True
 
         elif u_input[0] == "connect":
-            if len(u_input) == 4:
-                connect(u_input[1], 20, u_input[2], u_input[3])
-            elif len(u_input) == 5:
-                connect(u_input[1], int(u_input[2]), u_input[3], u_input[4])
-            else:
-                connect(u_input[1])
+            try:
+                if len(u_input) == 4:
+                    connect(u_input[1], 20, u_input[2], u_input[3])
+                elif len(u_input) == 5:
+                    connect(u_input[1], int(u_input[2]), u_input[3], u_input[4])
+                elif len(u_input) == 2:
+                    connect(u_input[1])
+                else:
+                    print("Missing Arguments")
+            except ValueError as err:
+                print("Invalid format use the help command to see the arguments")
 
         elif u_input[0] == "put":
             if len(u_input) < 2:
@@ -273,7 +302,7 @@ def parse_input():
 
         elif u_input[0] == "list":
             if len(u_input) >= 2:
-                list(u_input[1])
+                list_files(u_input[1])
             else:
                 print("List requires an argument of 'local' or 'remote'.")
 
@@ -299,12 +328,14 @@ def parse_input():
                 print("createdirectory requires a name of the directory to create")
                 
         elif u_input[0] == "change":
-            if u_input[1] == None or u_input[2] == None or u_input[3] == None:
+            if u_input[1] is None or u_input[2] is None or u_input[3] is None:
                 print("Error. Must provide permissions and file name.")
             else:
-                change_permissions(u_input[1] + " " +
-                               u_input[2] + " " + u_input[3])
+                change_permissions(u_input[1] + " " + u_input[2] + " " + u_input[3])
                 
+        elif u_input[0] == "load":
+            load_con()
+
         else:
             print("Invalid command.  Type help to display a help menu")
     except ft.all_errors as err:
