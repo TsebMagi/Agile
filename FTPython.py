@@ -45,6 +45,10 @@ def delete(targetType, name):
 
 # Creates a folder specified by the user
 def create(name):
+    try:
+        ftp_connection.mkd(name)
+    except ft.all_errors as err:
+        print("unable to create directory " + name + ": ", err)
 
   
 #Changes a file's permissions, where change is the chmod xxxx fileName
@@ -54,13 +58,6 @@ def change_permissions(change):
         print("Failed to change permissions.")
     else:
         print("Successfully changed permissions.")
-
-# Deletes a filename specified by the user
-def delete(filename):
-    try:
-        ftp_connection.mkd(name)
-    except ft.all_errors as err:
-        print("unable to create directory " + name + ": ", err)
 
 
 # Connects to the host and updates the global ftp connection.
