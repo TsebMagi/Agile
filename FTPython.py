@@ -19,8 +19,9 @@ DB_Name = "connections.db"
 
 create_table = """CREATE TABLE IF NOT EXISTS connections (connection_name text PRIMARY KEY, connection_address text NOT NULL,
  port integer, user_name text, encrypted_password text); """
-insert_into_table = """insert into connections values (?, ?, ?, ?, ?)"""
-get_connections = """SELECT * from connections"""
+insert_into_table = """insert into connections values (?, ?, ?, ?, ?);"""
+get_connections = """SELECT * from connections;"""
+load_connection = """SELECT * from connections c WHERE c.connection_name=?;"""
 
 
 # Changes a file's permissions, where change is the chmod xxxx fileName
@@ -60,11 +61,14 @@ def connect(host, port=20, username="", password="", account_info=""):
 # Places file(s) on the connected server
 def put(files):
     global total_bytes_transferred
-    for file in files:
-        total_bytes_transferred = 0
-        ftp_connection.storbinary("STOR " + os.path.basename(file), open(file, 'r+b'),
+    try:
+        for file in files:
+            total_bytes_transferred = 0
+            ftp_connection.storbinary("STOR " + os.path.basename(file), open(file, 'r+b'),
                                   8192, g_print_progress(file, os.path.getsize(file)))
-        print("")
+            print("")
+    except AttributeError as err:
+        print("File not found")
 
 
 # Change directory (currently this is a relative path)
@@ -92,13 +96,16 @@ def list_files(option):
 # Gets file(s) from the connected server
 def get(files):
     global total_bytes_transferred
-    for file in files:
-        total_bytes_transferred = 0
-        store_file = open(os.path.basename(file), 'w+b')
-        ftp_connection.retrbinary("RETR " + file,
-                                  g_write_and_print_progress(store_file, file, ftp_connection.size(file)))
-        print("")
-        store_file.close()
+    try:
+        for file in files:
+            total_bytes_transferred = 0
+            store_file = open(os.path.basename(file), 'w+b')
+            ftp_connection.retrbinary("RETR " + file,
+                                      g_write_and_print_progress(store_file, file, ftp_connection.size(file)))
+            print("")
+            store_file.close()
+    except AttributeError as err:
+        print("File not found")
 
 
 # Generates and returns the function to write the transferred bytes to
@@ -205,6 +212,20 @@ def show_connections():
         print(item)
 
 
+def load_con():
+    nickname = input("Enter the nickname of the connection you want to load ")
+    con = sqlite3.connect(DB_Name)
+    c = con.cursor()
+    c.execute(load_connection, (nickname,))
+    to_load = c.fetchone()
+    key = input("Enter the Key that was used to encrypt the password: ")
+    cypher = new(key)
+    password = cypher.decrypt(to_load[-1]).decode('ascii')
+    print(to_load)
+    print(password)
+    connect(to_load[1], to_load[2], to_load[3], password)
+
+
 # Parses user input
 def parse_input():
     u_input = input("input: ")
@@ -216,12 +237,17 @@ def parse_input():
             return True
 
         elif u_input[0] == "connect":
-            if len(u_input) == 4:
-                connect(u_input[1], 20, u_input[2], u_input[3])
-            elif len(u_input) == 5:
-                connect(u_input[1], int(u_input[2]), u_input[3], u_input[4])
-            else:
-                connect(u_input[1])
+            try:
+                if len(u_input) == 4:
+                    connect(u_input[1], 20, u_input[2], u_input[3])
+                elif len(u_input) == 5:
+                    connect(u_input[1], int(u_input[2]), u_input[3], u_input[4])
+                elif len(u_input) == 2:
+                    connect(u_input[1])
+                else:
+                    print("Missing Arguments")
+            except ValueError as err:
+                print("Invalid format use the help command to see the arguments")
 
         elif u_input[0] == "put":
             if len(u_input) < 2:
@@ -275,6 +301,8 @@ def parse_input():
                 print("Error. Must provide permissions and file name.")
             else:
                 change_permissions(u_input[1] + " " + u_input[2] + " " + u_input[3])
+        elif u_input[0] == "load":
+            load_con()
         else:
             print("Invalid command.  Type help to display a help menu")
     except ft.all_errors as err:
