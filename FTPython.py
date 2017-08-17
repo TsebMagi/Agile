@@ -73,6 +73,7 @@ def connect(host, port=20, username="", password="", account_info=""):
         print(ftp_connection.login(username, password, account_info))
         print(ftp_connection.pwd())
     except ft.all_errors as err:
+        ftp_connection = None
         print("Connection failed: ", err)
 
 
@@ -250,7 +251,7 @@ def parse_input():
     u_input = input("input: ")
     u_input = u_input.split()
     u_input[0] = u_input[0].lower()
-
+    global ftp_connection
     try:
         if u_input[0] == "quit":
             return True
@@ -294,6 +295,7 @@ def parse_input():
         elif u_input[0] == "close":
             if ftp_connection is not None:
                 ftp_connection.close()
+                ftp_connection = None
             else:
                 print("No Connection to Close")
 
