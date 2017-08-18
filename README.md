@@ -3,6 +3,8 @@
 
   An insecure FTP client that currently can connect to an ftp server to upload and download a file.
   
+  This project uses Python 3.x and uses the Python Crypto library
+  
   **SERVER**   
 The only way I have currently made the client upload and download files is by running a twisted server on the PSU server.  Anyone can start one of these by getting onto the linux server and using the command:
 
